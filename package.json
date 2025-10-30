@@ -5,7 +5,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
+    "test": "cross-env NODE_ENV=test jest --detectOpenHandles --forceExit",
     "start": "nodemon server.js"
   },
   "keywords": [],
@@ -16,6 +16,7 @@
     "csv-parser": "^3.2.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "fast-csv": "^5.0.5",
     "mongoose": "^8.19.2",
     "multer": "^2.0.2",
     "openai": "^6.7.0"

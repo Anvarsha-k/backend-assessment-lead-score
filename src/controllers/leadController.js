@@ -24,12 +24,22 @@ export const scoreLeads = async (req, res) => {
   }
 };
 
+// Show the Result 
 export const getResults = async (req, res) => {
   try {
     const data = await leadService.getResults();
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+// Export the result to CSV
+export const exportResultsToCSV = async (req, res) => {
+  try {
+    await leadService.exportResultsToCSV(res);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to export CSV", error: err.message });
   }
 };
 

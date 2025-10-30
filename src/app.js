@@ -14,5 +14,7 @@ app.post("/offer", offerController.createOffer);
 app.post("/leads/upload", leadController.uploadMiddleware, leadController.uploadLeads);
 app.post("/score", leadController.scoreLeads);
 app.get("/results", leadController.getResults);
+app.get("/results/export", leadController.exportResultsToCSV);
+
 
 export default app;

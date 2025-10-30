@@ -3,9 +3,12 @@ import dotenv from "dotenv";
 import { parseCSV } from "../utils/csvParserUtils.js";
 import { getLatestOffer } from "./offerService.js";
 import OpenAI from "openai";
+import fs from "fs";
+import { format } from "@fast-csv/format";
+
 dotenv.config();
 
-const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 console.log(process.env.OPENAI_API_KEY)
 
 // --- RULE LAYER (Max 50 pts)
@@ -132,4 +135,31 @@ export const scoreLeads = async () => {
 //Bussiness logic for showing the calculated results
 export const getResults = async () => {
   return await Lead.find().sort({ score: -1 });
+};
+
+// Export leads results to CSV
+export const exportResultsToCSV = async (res) => {
+  const leads = await Lead.find().sort({ score: -1 });
+
+  // Stream CSV to response
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", "attachment; filename=results.csv");
+
+  const csvStream = format({ headers: true });
+  csvStream.pipe(res);
+
+  leads.forEach((lead) => {
+    csvStream.write({
+      name: lead.name,
+      role: lead.role,
+      company: lead.company,
+      industry: lead.industry,
+      location: lead.location,
+      intent: lead.intent,
+      score: lead.score,
+      reasoning: lead.reasoning,
+    });
+  });
+
+  csvStream.end();
 };
