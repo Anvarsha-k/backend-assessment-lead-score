@@ -1,0 +1,322 @@
+# Lead Scoring Backend API
+
+This backend service scores B2B leads based on product/offer details and prospect information, combining a **rule-based layer** and an **AI-powered layer** to classify buying intent as **High, Medium, or Low**.
+
+**Hosted Backend URL:** [https://backend-assessment-lead-score.onrender.com/](https://backend-assessment-lead-score.onrender.com/)  
+**Loom Demo:** [https://www.loom.com/share/5ea592d457c64ad0be30867414bd8aa7](https://www.loom.com/share/5ea592d457c64ad0be30867414bd8aa7)
+
+Features implemented:
+- Upload leads CSV
+- Create offers
+- Scoring pipeline: Rule Layer + AI Layer
+- Fetch results
+- Export results as CSV
+- Dockerized backend
+
+
+## API Endpoints
+
+### 1. Offer Management
+**Create an offer**  
+**POST** `/offer`  
+- **URL:** `https://backend-assessment-lead-score.onrender.com/offer`  
+- **Request Body Example:**
+```json
+{
+  "name": "AI Outreach Automation",
+  "value_props": ["24/7 outreach", "6x more meetings"],
+  "ideal_use_cases": ["B2B SaaS mid-market"]
+}
+
+ ## Response Example
+
+ {
+  "message": "Offer created successfully",
+  "offer": {
+    "_id": "64f1a123b5d1c8d123456789",
+    "name": "AI Outreach Automation",
+    "value_props": ["24/7 outreach", "6x more meetings"],
+    "ideal_use_cases": ["B2B SaaS mid-market"]
+  }
+}
+
+## Leads Management
+
+Upload leads CSV
+POST /leads/upload
+
+URL: https://backend-assessment-lead-score.onrender.com/leads/upload
+
+Form-data field name: file (CSV file)
+
+CSV Columns: name, role, company, industry, location, linkedin_bio
+
+## Response Example:
+
+{
+  "message": "Leads uploaded",
+  "count": 50
+}
+
+## Scoring 
+
+Score all uploaded leads
+POST /score
+
+URL: https://backend-assessment-lead-score.onrender.com/score
+
+Example Response
+{
+  "message": "Scoring completed",
+  "results": [
+    {
+      "name": "Ava Patel",
+      "role": "Head of Growth",
+      "company": "FlowMetrics",
+      "industry": "SaaS",
+      "location": "USA",
+      "intent": "High",
+      "score": 85,
+      "reasoning": "Fits ICP SaaS mid-market and role is decision maker."
+    }
+  ]
+}
+
+## Fetch Result
+
+Get scored leads
+GET /results
+
+URL: https://backend-assessment-lead-score.onrender.com/results
+
+Response Example: Same as scoring results above
+
+## Export Result
+ Export results as CSV
+GET /results/export
+
+URL: https://backend-assessment-lead-score.onrender.com/results/export
+
+Response: Downloads CSV file containing all scored leads
+
+Setup Instructions
+
+Clone the repository
+
+git clone https://github.com/Anvarsha-k/backend-assessment-lead-score.git
+cd backend-assessment-lead-score
+
+
+Install dependencies
+
+npm install
+
+
+Set environment variables in a .env file in the root directory:
+
+PORT=5000
+MONGO_URI=<your-mongodb-uri>
+OPENAI_API_KEY=<your-openai-api-key>
+
+
+Start the server
+
+npm start
+
+
+Server will run at:
+https://backend-assessment-lead-score.onrender.com/
+
+Docker (Optional / Bonus Feature)
+
+Build Docker image:
+
+docker build -t lead-score-backend .
+
+
+Run Docker container:
+
+docker run -p 5000:5000 lead-score-backend
+
+
+Unit Tests (Optional / Bonus Feature)
+
+npm test
+
+Scoring Logic Explanation
+
+The backend scoring uses two layers: a Rule Layer and an AI Layer, combining to produce a final score from 0–100 and classify intent as High, Medium, or Low.
+
+1. Rule Layer (Max 50 Points)
+
+Role relevance
+
+Decision makers (founder, CEO, head, director, manager): +20
+
+Influencers/executives: +10
+
+Others: 0
+
+Industry match
+
+Exact ICP match: +20
+
+Partial / adjacent match: +10
+
+Else: 0
+
+Data completeness
+
+All required fields present: +10
+
+2. AI Layer (Max 50 Points)
+
+Sends the lead + offer data to OpenAI GPT-3.5-turbo.
+
+Prompt example:
+
+Classify the lead’s buying intent as High, Medium, or Low in 1–2 sentences.
+Offer: {offer JSON}, Lead: {lead JSON}
+
+
+Mapping of AI response to points:
+
+High → 50
+
+Medium → 30
+
+Low → 10
+
+3. Final Score
+Final Score = Rule Score + AI Score
+
+
+Example output for a lead:
+
+{
+  "name": "Ava Patel",
+  "role": "Head of Growth",
+  "company": "FlowMetrics",
+  "industry": "SaaS",
+  "location": "USA",
+  "intent": "High",
+  "score": 85,
+  "reasoning": "Fits ICP SaaS mid-market and role is decision maker."
+}
+
+API Routes & Usage
+
+Your deployed backend is hosted at:
+https://backend-assessment-lead-score.onrender.com/
+
+1. Create an Offer
+
+Route: POST /offer
+URL: https://backend-assessment-lead-score.onrender.com/offer
+
+Request Body (JSON):
+
+{
+  "name": "AI Outreach Automation",
+  "value_props": ["24/7 outreach","6x more meetings"],
+  "ideal_use_cases": ["B2B SaaS mid-market"]
+}
+
+
+cURL Example:
+
+curl -X POST https://backend-assessment-lead-score.onrender.com/offer \
+-H "Content-Type: application/json" \
+-d '{"name":"AI Outreach Automation","value_props":["24/7 outreach","6x more meetings"],"ideal_use_cases":["B2B SaaS mid-market"]}'
+
+2. Upload Leads CSV
+
+Route: POST /leads/upload
+URL: https://backend-assessment-lead-score.onrender.com/leads/upload
+
+Accepts a CSV file with columns:
+name, role, company, industry, location, linkedin_bio
+
+Field name for file: file (multipart/form-data)
+
+cURL Example:
+
+curl -X POST https://backend-assessment-lead-score.onrender.com/leads/upload \
+-F "file=@leads.csv"
+
+3. Score Leads
+
+Route: POST /score
+URL: https://backend-assessment-lead-score.onrender.com/score
+
+Runs the scoring pipeline on uploaded leads.
+
+cURL Example:
+
+curl -X POST https://backend-assessment-lead-score.onrender.com/score
+
+4. Get Scored Results
+
+Route: GET /results
+URL: https://backend-assessment-lead-score.onrender.com/results
+
+Example Response:
+
+[
+  {
+    "name": "Ava Patel",
+    "role": "Head of Growth",
+    "company": "FlowMetrics",
+    "industry": "SaaS",
+    "location": "USA",
+    "intent": "High",
+    "score": 85,
+    "reasoning": "Fits ICP SaaS mid-market and role is decision maker."
+  }
+]
+
+5. Export Results as CSV (Bonus)
+
+Route: GET /results/export
+URL: https://backend-assessment-lead-score.onrender.com/results/export
+
+Exports scored results as a CSV file for download.
+
+cURL Example:
+
+curl -X GET https://backend-assessment-lead-score.onrender.com/results/export -o scored_leads.csv
+
+Deployment & Loom Demo
+
+Your backend service is live and accessible at:
+https://backend-assessment-lead-score.onrender.com/
+
+Dockerized Service (Bonus)
+
+The backend is fully dockerized for easy deployment.
+
+To build and run locally:
+
+docker build -t lead-score-backend .
+docker run -p 5000:5000 lead-score-backend
+
+
+The app will be accessible at http://localhost:5000
+
+Loom Demo
+
+Watch the demo of the API usage and scoring workflow here:
+Loom Demo = https://www.loom.com/share/5ea592d457c64ad0be30867414bd8aa7
+
+Notes
+
+.env is ignored in GitHub via .gitignore. Make sure to create your own .env with:
+
+PORT=5000
+MONGO_URI=<your-mongodb-uri>
+OPENAI_API_KEY=<your-openai-api-key>
+
+
+Node.js 18+ recommended.
+
+MongoDB Atlas recommended for hosting the database.
